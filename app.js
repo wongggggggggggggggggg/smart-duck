@@ -15,13 +15,6 @@ const I18N = {
     checkinTitle: "生態打卡",
     notesLabel: "觀察筆記",
     notesPlaceholder: "例如：看到兩隻小鴨在潮間帶覓食",
-    tagsLabel: "標籤（以逗號分隔）",
-    tagsPlaceholder: "濕地, 海岸, 鳥類",
-    getLocationBtn: "取得目前位置",
-    startTrackingBtn: "開始即時追蹤",
-    stopTrackingBtn: "停止即時追蹤",
-    latitudeLabel: "緯度",
-    longitudeLabel: "經度",
     photoLabel: "上傳觀察照片",
     submitBtn: "上傳並建立打卡",
     mapTitle: "即時地圖",
@@ -58,8 +51,6 @@ const I18N = {
     locationUnavailable: "目前無法取得位置訊號，請稍後再試。",
     locationTimeout: "定位逾時，請移動至訊號較佳處重試。",
     locationUnknownError: "定位失敗，請稍後重試。",
-    trackingStarted: "即時追蹤已啟動。",
-    trackingStopped: "即時追蹤已停止。",
     needLocation: "請先取得目前位置再送出打卡。",
     needNoteOrPhoto: "請至少填寫筆記或上傳一張照片。",
     tooManyPhotos: "照片數量超過限制（最多 2 張）。",
@@ -116,13 +107,6 @@ const I18N = {
     checkinTitle: "Eco Check-in",
     notesLabel: "Observation Notes",
     notesPlaceholder: "Example: Two ducks were feeding in the intertidal zone",
-    tagsLabel: "Tags (comma separated)",
-    tagsPlaceholder: "wetland, coast, birds",
-    getLocationBtn: "Use Current Location",
-    startTrackingBtn: "Start Live Tracking",
-    stopTrackingBtn: "Stop Live Tracking",
-    latitudeLabel: "Latitude",
-    longitudeLabel: "Longitude",
     photoLabel: "Upload Observation Photos",
     submitBtn: "Analyze and Save Check-in",
     mapTitle: "Live Map",
@@ -159,8 +143,6 @@ const I18N = {
     locationUnavailable: "Location unavailable. Try again in a moment.",
     locationTimeout: "Location request timed out. Try from an open area.",
     locationUnknownError: "Location failed. Please try again.",
-    trackingStarted: "Live tracking started.",
-    trackingStopped: "Live tracking stopped.",
     needLocation: "Capture your location before submitting a check-in.",
     needNoteOrPhoto: "Please provide either notes or at least one photo.",
     tooManyPhotos: "Too many photos (maximum: 2).",
@@ -440,6 +422,8 @@ async function init() {
   renderCheckinMarkers();
   renderPlaceMarkers();
   renderHotspotMarkers();
+  // 自動取得目前位置（取代原本的「取得目前位置」按鈕）
+  requestCurrentLocation();
 }
 
 function cacheDom() {
@@ -447,11 +431,6 @@ function cacheDom() {
   dom.clearDataBtn = document.getElementById("clearDataBtn");
   dom.checkinForm = document.getElementById("checkinForm");
   dom.notesInput = document.getElementById("notesInput");
-  dom.tagsInput = document.getElementById("tagsInput");
-  dom.getLocationBtn = document.getElementById("getLocationBtn");
-  dom.trackingBtn = document.getElementById("trackingBtn");
-  dom.latInput = document.getElementById("latInput");
-  dom.lngInput = document.getElementById("lngInput");
   dom.photoInput = document.getElementById("photoInput");
   dom.submitBtn = document.getElementById("submitBtn");
   dom.privacyNotice = document.getElementById("privacyNotice");
@@ -498,8 +477,6 @@ function bindEvents() {
     setStatus("", t("clearedDone"));
   });
 
-  dom.getLocationBtn?.addEventListener("click", requestCurrentLocation);
-  dom.trackingBtn?.addEventListener("click", toggleTracking);
   dom.checkinForm?.addEventListener("submit", handleCheckinSubmit);
   dom.feedList?.addEventListener("click", onFeedClick);
   dom.gmailLoginBtn?.addEventListener("click", handleGmailLogin);
@@ -619,7 +596,6 @@ function applyI18n() {
     setGmailStatus("", dom.gmailStatus.dataset.raw);
   }
 
-  updateTrackingButtonText();
   updateMapProviderBadge();
   updateGmailButtons();
   renderGmailSummary();
@@ -1235,43 +1211,6 @@ function requestCurrentLocation() {
   );
 }
 
-function toggleTracking() {
-  if (!navigator.geolocation) {
-    setStatus("", "Geolocation API is not supported by this browser.");
-    return;
-  }
-
-  if (state.trackingWatchId !== null) {
-    navigator.geolocation.clearWatch(state.trackingWatchId);
-    state.trackingWatchId = null;
-    updateTrackingButtonText();
-    setStatus("trackingStopped");
-    return;
-  }
-
-  state.trackingWatchId = navigator.geolocation.watchPosition(
-    (position) => {
-      applyLocation(position.coords.latitude, position.coords.longitude);
-    },
-    (error) => {
-      handleGeoError(error);
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 3000,
-      timeout: 12000
-    }
-  );
-
-  updateTrackingButtonText();
-  setStatus("trackingStarted");
-}
-
-function updateTrackingButtonText() {
-  const key = state.trackingWatchId === null ? "startTrackingBtn" : "stopTrackingBtn";
-  dom.trackingBtn.textContent = t(key);
-}
-
 function handleGeoError(error) {
   if (!error) {
     setStatus("locationUnknownError");
@@ -1301,8 +1240,6 @@ function applyLocation(lat, lng) {
   const longitude = Number(lng);
 
   state.currentLocation = { lat: latitude, lng: longitude };
-  dom.latInput.value = latitude.toFixed(6);
-  dom.lngInput.value = longitude.toFixed(6);
 
   if (state.mapProvider === "leaflet") {
     if (!state.currentLeafletMarker) {
@@ -1356,11 +1293,7 @@ async function handleCheckinSubmit(event) {
   }
 
   const notes = dom.notesInput.value.trim();
-  const tags = dom.tagsInput.value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean)
-    .slice(0, 8);
+  const tags = [];
 
   if (!notes && photoFiles.length === 0) {
     setStatus("needNoteOrPhoto");
