@@ -1,0 +1,17 @@
+{
+  "name": "小鴨與小島生態保育站",
+  "short_name": "生態保育站",
+  "description": "定位打卡、照片辨識與保育行動建議",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f0fdf4",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3063/3063071.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

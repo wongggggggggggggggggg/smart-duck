@@ -1,0 +1,106 @@
+{
+  "places": [
+    {
+      "id": "northern_metropolis",
+      "name": {
+        "zh": "北部都會區",
+        "en": "Northern Metropolis"
+      },
+      "type": "region",
+      "location": {
+        "lat": 22.5124,
+        "lng": 114.1265
+      },
+      "summary": {
+        "zh": "位於新界北部的發展與生態交會地帶，涵蓋河谷、濕地、農地與新市鎮過渡景觀。",
+        "en": "A development-ecology transition zone in the northern New Territories, spanning valleys, wetlands, farmland, and new town edges."
+      },
+      "facts": [
+        {
+          "label": { "zh": "關注主題", "en": "Focus" },
+          "value": { "zh": "濕地保育、跨境生態廊道", "en": "Wetland conservation, cross-border corridors" }
+        },
+        {
+          "label": { "zh": "主要棲地", "en": "Key Habitats" },
+          "value": { "zh": "魚塘、河道、濕地草澤", "en": "Fishponds, river channels, wet meadows" }
+        },
+        {
+          "label": { "zh": "觀察建議", "en": "Observation" },
+          "value": { "zh": "清晨與黃昏較易觀察水鳥活動", "en": "Bird activity peaks around dawn and dusk" }
+        }
+      ],
+      "sections": [
+        {
+          "title": { "zh": "環境特色", "en": "Landscape" },
+          "body": {
+            "zh": "河谷與魚塘串連成濕地網絡，提供候鳥停棲、覓食與補給空間。",
+            "en": "Valleys and fishponds form a wetland network that supports migratory birds for resting and foraging."
+          }
+        },
+        {
+          "title": { "zh": "生態價值", "en": "Ecological Value" },
+          "body": {
+            "zh": "多樣水文條件可孕育不同濕地物種，是北部候鳥重要的通道區。",
+            "en": "Diverse hydrology supports wetland species and serves as a key migratory corridor in the north."
+          }
+        },
+        {
+          "title": { "zh": "保育提醒", "en": "Conservation Tips" },
+          "body": {
+            "zh": "建議維持緩衝帶，降低人為干擾，並保留生態廊道連續性。",
+            "en": "Maintain buffers, reduce disturbance, and preserve corridor continuity."
+          }
+        }
+      ],
+      "tags": ["濕地", "河谷", "候鳥"]
+    },
+    {
+      "id": "kwu_tung_heart_lake",
+      "isDefault": true,
+      "name": {
+        "zh": "古洞心形湖",
+        "en": "Kwu Tung Heart-shaped Lake"
+      },
+      "type": "landmark",
+      "location": {
+        "lat": 22.5068,
+        "lng": 114.1095
+      },
+      "summary": {
+        "zh": "古洞一帶的心形水體與濕地景觀，適合觀察水鳥與水生植物。",
+        "en": "A heart-shaped waterbody and wetland landscape in Kwu Tung, suitable for observing waterbirds and aquatic plants."
+      },
+      "facts": [
+        {
+          "label": { "zh": "地貌特色", "en": "Feature" },
+          "value": { "zh": "心形湖面與周邊濕地草澤", "en": "Heart-shaped water surface with wet meadows" }
+        },
+        {
+          "label": { "zh": "常見物種", "en": "Common Species" },
+          "value": { "zh": "鷺科、水鴨與涉禽", "en": "Herons, ducks, and waders" }
+        },
+        {
+          "label": { "zh": "觀察時段", "en": "Best Time" },
+          "value": { "zh": "日出後 2 小時內或傍晚前", "en": "Within 2 hours after sunrise or before dusk" }
+        }
+      ],
+      "sections": [
+        {
+          "title": { "zh": "生態特色", "en": "Ecology" },
+          "body": {
+            "zh": "湖面與濕地草澤形成多層棲地，利於水鳥覓食與停棲。",
+            "en": "The open water and wet meadows create layered habitats that support waterbird foraging and roosting."
+          }
+        },
+        {
+          "title": { "zh": "保育建議", "en": "Conservation" },
+          "body": {
+            "zh": "保持觀察距離、減少噪音與夜間光害，維護濕地靜謐環境。",
+            "en": "Keep distance, reduce noise and light pollution, and preserve a quiet wetland environment."
+          }
+        }
+      ],
+      "tags": ["心形湖", "濕地", "水鳥"]
+    }
+  ]
+}

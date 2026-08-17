@@ -1,0 +1,233 @@
+:root {
+  --bg: #f3f8f4;
+  --panel: #ffffffd9;
+  --line: #9dc2b5;
+  --text: #123532;
+  --muted: #3c6360;
+  --sea: #0f6d73;
+  --mint: #1f8a78;
+  --sun: #f2a541;
+  --radius-lg: 20px;
+  --radius-md: 12px;
+  --shadow: 0 14px 34px rgba(8, 39, 42, 0.17);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Noto Sans TC", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 12% 18%, #d7eee5, transparent 40%),
+    radial-gradient(circle at 88% 82%, #ffdcb2, transparent 45%), var(--bg);
+}
+
+.detail-shell {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.detail-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.back-btn,
+.lang-btn {
+  font-family: "M PLUS Rounded 1c", sans-serif;
+  border-radius: 999px;
+  border: 1px solid #7dad9f;
+  background: #ffffff;
+  color: #114944;
+  padding: 8px 14px;
+  text-decoration: none;
+  font-size: 0.86rem;
+}
+
+.lang-btn {
+  cursor: pointer;
+}
+
+.detail-main {
+  display: grid;
+  gap: 12px;
+}
+
+.hero-card,
+.intro-card,
+.facts-grid,
+.wetland-card,
+.related-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-photo {
+  width: 100%;
+  height: min(42vh, 420px);
+  object-fit: cover;
+  display: block;
+  background: linear-gradient(140deg, #d8f1eb, #d8e8ff);
+}
+
+.hero-overlay {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  background: #0f5555cc;
+  border: 1px solid #9ad0c2;
+  color: #f4fffd;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.photo-source {
+  color: #edfdf9;
+  font-size: 0.73rem;
+  background: #194847d9;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+.intro-card,
+.wetland-card,
+.related-card {
+  padding: 14px;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "M PLUS Rounded 1c", sans-serif;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+}
+
+.science-name {
+  margin: 4px 0 10px;
+  color: #2f5b58;
+  font-size: 0.9rem;
+}
+
+.intro-text {
+  margin: 0;
+  color: #234946;
+  line-height: 1.6;
+}
+
+.facts-grid {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fact-item {
+  border: 1px solid #a2ccc0;
+  border-radius: var(--radius-md);
+  background: #f5fffb;
+  padding: 10px;
+}
+
+.fact-label {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #366563;
+  font-weight: 700;
+}
+
+.fact-value {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  color: #173c39;
+  line-height: 1.5;
+}
+
+.wetland-card h2,
+.related-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.03rem;
+}
+
+.wetland-card p {
+  margin: 6px 0;
+  font-size: 0.88rem;
+  color: #204845;
+  line-height: 1.5;
+}
+
+.related-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+}
+
+.related-btn {
+  border: 1px solid #8fbcaf;
+  border-radius: 10px;
+  padding: 8px;
+  background: #ecf8f4;
+  text-align: left;
+  text-decoration: none;
+  color: #124b45;
+}
+
+.related-btn.active {
+  border-color: #0f6d73;
+  background: #def5f7;
+}
+
+.related-name {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.related-sci {
+  display: block;
+  margin-top: 2px;
+  color: #3c6260;
+  font-size: 0.76rem;
+}
+
+@media (max-width: 760px) {
+  .facts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-photo {
+    height: 34vh;
+  }
+
+  .detail-top {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Duck Island Eco Guardian</title>
+    <!-- PWA Settings -->
+    <link rel="manifest" href="./manifest.json" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="生態保育站" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <div class="bg-pattern"></div>
+
+    <div class="app-shell">
+      <header class="window top-bar reveal">
+        <div>
+          <h1 data-i18n="appTitle">小鴨與小島生態保育站</h1>
+          <p class="subtitle" data-i18n="appSubtitle">定位打卡、照片辨識與保育行動建議</p>
+        </div>
+        <div class="header-actions">
+          <button type="button" id="langToggleBtn" class="btn ghost"></button>
+          <button type="button" id="clearDataBtn" class="btn ghost" data-i18n="clearDataBtn">清除本機紀錄</button>
+        </div>
+      </header>
+
+      <main class="layout-grid">
+        <section class="window panel form-panel reveal delay-1">
+          <h2 data-i18n="checkinTitle">生態打卡</h2>
+          <p class="privacy-note" id="privacyNotice"></p>
+
+          <form id="checkinForm" novalidate>
+            <label for="notesInput" data-i18n="notesLabel">觀察筆記</label>
+            <textarea
+              id="notesInput"
+              rows="4"
+              maxlength="240"
+              data-i18n-placeholder="notesPlaceholder"
+              placeholder="例如：看到兩隻小鴨在潮間帶覓食"
+            ></textarea>
+
+            <label for="tagsInput" data-i18n="tagsLabel">標籤（以逗號分隔）</label>
+            <input
+              id="tagsInput"
+              type="text"
+              maxlength="100"
+              data-i18n-placeholder="tagsPlaceholder"
+              placeholder="濕地, 海岸, 鳥類"
+            />
+
+            <div class="location-actions">
+              <button type="button" id="getLocationBtn" class="btn" data-i18n="getLocationBtn">取得目前位置</button>
+              <button type="button" id="trackingBtn" class="btn secondary" data-i18n="startTrackingBtn">開始即時追蹤</button>
+            </div>
+
+            <div class="coord-grid">
+              <label for="latInput" data-i18n="latitudeLabel">緯度</label>
+              <input id="latInput" type="text" readonly />
+              <label for="lngInput" data-i18n="longitudeLabel">經度</label>
+              <input id="lngInput" type="text" readonly />
+            </div>
+
+            <label for="photoInput" data-i18n="photoLabel">上傳觀察照片</label>
+            <input id="photoInput" type="file" accept="image/png,image/jpeg,image/webp" multiple />
+            <p class="hint" id="uploadHint"></p>
+            <p class="hint">測試檔名範例：mallard_demo.jpg、northern_pintail_01.jpg、black_faced_spoonbill.png</p>
+
+            <button id="submitBtn" type="submit" class="btn primary" data-i18n="submitBtn">上傳並建立打卡</button>
+          </form>
+        </section>
+
+        <section class="window panel map-panel reveal delay-2">
+          <div class="panel-head">
+            <h2 data-i18n="mapTitle">即時地圖</h2>
+            <span id="mapProviderBadge" class="provider-badge">Leaflet</span>
+          </div>
+          <div id="map"></div>
+          <p class="hint" id="locationStatus"></p>
+        </section>
+
+        <section class="window panel side-panel reveal delay-3">
+          <h2 data-i18n="resultTitle">AI 識別結果</h2>
+          <div id="aiResultCard" class="result-card empty"></div>
+
+          <h2 data-i18n="feedTitle">最新打卡</h2>
+          <ul id="feedList" class="feed-list"></ul>
+
+          <div class="hotspot-panel">
+            <h2 data-i18n="hotspotTitle">濕地觀測點導覽</h2>
+            <p class="hint" id="hotspotHint" data-i18n="hotspotHint"></p>
+            <ul id="hotspotList" class="hotspot-list"></ul>
+            <div id="hotspotDetail" class="hotspot-detail empty"></div>
+          </div>
+
+          <div class="gmail-panel">
+            <h2 data-i18n="gmailTitle">Gmail 自動整理</h2>
+            <p class="hint" id="gmailPrivacyHint"></p>
+
+            <div class="gmail-actions">
+              <button type="button" id="gmailLoginBtn" class="btn" data-i18n="gmailLoginBtn">登入 Gmail</button>
+              <button type="button" id="gmailRefreshBtn" class="btn secondary" data-i18n="gmailRefreshBtn" disabled>
+                重新整理
+              </button>
+              <button type="button" id="gmailLogoutBtn" class="btn ghost" data-i18n="gmailLogoutBtn" disabled>
+                登出
+              </button>
+            </div>
+
+            <p class="hint" id="gmailStatus"></p>
+
+            <div class="gmail-summary" id="gmailSummary"></div>
+            <ul id="gmailList" class="gmail-list"></ul>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      window.APP_CONFIG = {
+        googleMapsApiKey: "",
+        aiEndpoint: "",
+        aiApiKey: "",
+        gmailClientId: "",
+        gmailMaxResults: 10,
+        gmailAutoRefreshMs: 180000,
+        mapDefaultCenter: [22.3193, 114.1694],
+        mapDefaultZoom: 11,
+        mapPlacesZoom: 13
+      };
+    </script>
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="./data/species.js"></script>
+    <script src="./app.js"></script>
+    <script>
+      // 註冊 Service Worker，以便離線快取與加入主畫面 (PWA) 特性
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker Registered!', reg))
+            .catch(err => console.error('Service Worker Registration Failed!', err));
+        });
+      }
+    </script>
+  </body>
+</html>

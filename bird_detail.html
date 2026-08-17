@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bird Detail | Duck Island Eco Guardian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./bird_detail.css" />
+  </head>
+  <body>
+    <div class="detail-shell">
+      <header class="detail-top">
+        <a id="backToMap" class="back-btn" href="./index.html">← Back to Map</a>
+        <button id="langToggleBtn" class="lang-btn" type="button">English</button>
+      </header>
+
+      <main class="detail-main">
+        <section class="hero-card">
+          <img id="birdPhoto" class="hero-photo" src="" alt="bird photo" />
+          <div class="hero-overlay">
+            <span id="siteBadge" class="badge"></span>
+            <span id="photoSource" class="photo-source"></span>
+          </div>
+        </section>
+
+        <section class="intro-card">
+          <h1 id="birdName"></h1>
+          <p id="birdScience" class="science-name"></p>
+          <p id="birdIntro" class="intro-text"></p>
+        </section>
+
+        <section class="facts-grid" id="factsGrid"></section>
+
+        <section class="wetland-card">
+          <h2 id="wetlandTitle"></h2>
+          <p id="wetlandHydrology"></p>
+          <p id="wetlandPlants"></p>
+          <p id="wetlandThreats"></p>
+          <p id="wetlandActions"></p>
+        </section>
+
+        <section class="related-card">
+          <h2 id="relatedTitle"></h2>
+          <div id="relatedBirds" class="related-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./bird_detail.js"></script>
+  </body>
+</html>
