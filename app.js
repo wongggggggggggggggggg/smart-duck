@@ -411,17 +411,25 @@ async function init() {
   cacheDom();
   bindEvents();
   loadPreferences();
-  await loadCheckins();
+  // 並行載入本機資料與觀測點資料，互不阻塞
+  await Promise.all([loadCheckins(), loadPlaces()]);
   applyI18n();
   renderResultCard(state.latestResult);
   renderFeed();
   seedExampleCheckins();
-  await loadPlaces();
   await initMap();
   renderCheckinMarkers();
   renderPlaceMarkers();
-  // 自動取得目前位置（取代原本的「取得目前位置」按鈕）
-  requestCurrentLocation();
+
+  // 畫面尺寸改變時校正地圖大小（手機旋轉、面板展開時避免地圖空白）
+  window.addEventListener("resize", () => {
+    if (state.map) {
+      state.map.invalidateSize();
+    }
+  });
+
+  // 延遲 1.5 秒再要求定位權限，避免與地圖載入同時搶資源造成卡頓
+  window.setTimeout(() => requestCurrentLocation(), 1500);
 }
 
 function cacheDom() {
@@ -1132,6 +1140,16 @@ function loadLeafletAssets(jsUrl, cssUrl) {
   });
 }
 
+// 限制單一 CDN 的等待時間，避免網路慢時頁面卡住
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      window.setTimeout(() => reject(new Error("timeout: " + label)), ms);
+    })
+  ]);
+}
+
 async function ensureLeafletLoaded() {
   if (window.L) {
     return true;
@@ -1154,7 +1172,7 @@ async function ensureLeafletLoaded() {
 
   for (const candidate of candidates) {
     try {
-      await loadLeafletAssets(candidate.js, candidate.css);
+      await withTimeout(loadLeafletAssets(candidate.js, candidate.css), 8000, candidate.js);
       if (window.L) {
         return true;
       }
