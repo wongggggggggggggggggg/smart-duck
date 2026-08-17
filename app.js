@@ -2,7 +2,7 @@ const STORAGE_KEY = "duck_island_eco_checkins_v1";
 const LANG_KEY = "duck_island_eco_lang";
 const GMAIL_CACHE_KEY = "duck_island_gmail_cache_v1";
 const MAX_PHOTO_COUNT = 2;
-const MAX_PHOTO_SIZE_BYTES = 2 * 1024 * 1024;
+const MAX_PHOTO_SIZE_BYTES = 100 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 const PLACES_URL = "./data/places.json";
@@ -24,7 +24,7 @@ const I18N = {
     feedTitle: "最新打卡",
     privacyNotice:
       "隱私提醒：本頁會在你同意後讀取定位，照片與打卡資料只儲存在目前瀏覽器（LocalStorage）。",
-    uploadHint: "最多 2 張，單張不超過 2MB，支援 JPG / PNG / WEBP。",
+    uploadHint: "最多 2 張，單張不超過 100MB，支援 JPG / PNG / WEBP。",
     mapLoading: "地圖載入中...",
     mapReady: "地圖已準備完成，請先取得定位。",
     mapFallback: "地圖圖磚連線失敗，改用備援圖層...",
@@ -55,7 +55,7 @@ const I18N = {
     needNoteOrPhoto: "請至少填寫筆記或上傳一張照片。",
     tooManyPhotos: "照片數量超過限制（最多 2 張）。",
     invalidPhotoType: "僅支援 JPG / PNG / WEBP 圖片。",
-    photoTooLarge: "圖片過大，單張請勿超過 2MB。",
+    photoTooLarge: "圖片過大，單張請勿超過 100MB。",
     analyzing: "AI 分析中...",
     checkinSaved: "打卡已儲存，並更新至地圖與最新動態。",
     analyzeFailed: "處理失敗，請稍後重試。",
@@ -116,7 +116,7 @@ const I18N = {
     feedTitle: "Recent Check-ins",
     privacyNotice:
       "Privacy notice: location is requested only with permission, and photos/check-ins are stored in this browser only (LocalStorage).",
-    uploadHint: "Up to 2 photos, each <= 2MB, formats: JPG / PNG / WEBP.",
+    uploadHint: "Up to 2 photos, each <= 100MB, formats: JPG / PNG / WEBP.",
     mapLoading: "Loading map...",
     mapReady: "Map is ready. Please capture your location first.",
     mapFallback: "Map tiles failed. Switching to a backup layer...",
@@ -147,7 +147,7 @@ const I18N = {
     needNoteOrPhoto: "Please provide either notes or at least one photo.",
     tooManyPhotos: "Too many photos (maximum: 2).",
     invalidPhotoType: "Only JPG / PNG / WEBP images are supported.",
-    photoTooLarge: "Photo is too large. Each image must be <= 2MB.",
+    photoTooLarge: "Photo is too large. Each image must be <= 100MB.",
     analyzing: "Analyzing with AI...",
     checkinSaved: "Check-in saved and added to map/feed.",
     analyzeFailed: "Something went wrong. Please try again.",
@@ -411,7 +411,7 @@ async function init() {
   cacheDom();
   bindEvents();
   loadPreferences();
-  loadCheckins();
+  await loadCheckins();
   loadGmailCache();
   applyI18n();
   renderResultCard(state.latestResult);
@@ -492,7 +492,29 @@ function loadPreferences() {
   }
 }
 
-function loadCheckins() {
+async function loadCheckins() {
+  // 優先從 IndexedDB 讀取（支援大照片）
+  try {
+    const db = await openCheckinDb();
+    const stored = await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readonly");
+      const req = tx.objectStore(DB_STORE).get(DB_KEY);
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    db.close();
+    if (Array.isArray(stored)) {
+      state.checkins = stored;
+      if (state.checkins[0]?.aiResult) {
+        state.latestResult = state.checkins[0].aiResult;
+      }
+      return;
+    }
+  } catch (error) {
+    console.warn("IndexedDB load failed, trying localStorage", error);
+  }
+
+  // 舊資料備援：從 localStorage 讀取並遷移到 IndexedDB
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
@@ -503,6 +525,10 @@ function loadCheckins() {
       state.checkins = parsed;
       if (state.checkins[0]?.aiResult) {
         state.latestResult = state.checkins[0].aiResult;
+      }
+      const migrated = await persistCheckins();
+      if (migrated) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
       }
     }
   } catch (error) {
@@ -548,8 +574,45 @@ async function loadPlaces() {
   }
 }
 
-function persistCheckins() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.checkins));
+// ---- IndexedDB 儲存（支援大容量照片，localStorage 只有約 5MB）----
+const DB_NAME = "duck-eco-db";
+const DB_STORE = "checkins";
+const DB_KEY = "all";
+
+function openCheckinDb() {
+  return new Promise((resolve, reject) => {
+    if (!window.indexedDB) {
+      reject(new Error("IndexedDB not supported"));
+      return;
+    }
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(DB_STORE)) {
+        db.createObjectStore(DB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function persistCheckins() {
+  try {
+    const db = await openCheckinDb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, "readwrite");
+      tx.objectStore(DB_STORE).put(state.checkins, DB_KEY);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+    return true;
+  } catch (error) {
+    console.error("Unable to persist checkins to IndexedDB", error);
+    setStatus("", "儲存失敗：檔案過大，瀏覽器儲存空間不足。請刪除部分打卡紀錄或改用較小照片。");
+    return false;
+  }
 }
 
 function persistGmailCache() {
