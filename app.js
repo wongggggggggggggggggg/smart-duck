@@ -412,16 +412,14 @@ async function init() {
   bindEvents();
   loadPreferences();
   await loadCheckins();
-  loadGmailCache();
   applyI18n();
   renderResultCard(state.latestResult);
   renderFeed();
-  initGmailModule();
+  seedExampleCheckins();
   await loadPlaces();
   await initMap();
   renderCheckinMarkers();
   renderPlaceMarkers();
-  renderHotspotMarkers();
   // 自動取得目前位置（取代原本的「取得目前位置」按鈕）
   requestCurrentLocation();
 }
@@ -439,16 +437,6 @@ function cacheDom() {
   dom.mapProviderBadge = document.getElementById("mapProviderBadge");
   dom.aiResultCard = document.getElementById("aiResultCard");
   dom.feedList = document.getElementById("feedList");
-  dom.gmailPrivacyHint = document.getElementById("gmailPrivacyHint");
-  dom.gmailLoginBtn = document.getElementById("gmailLoginBtn");
-  dom.gmailRefreshBtn = document.getElementById("gmailRefreshBtn");
-  dom.gmailLogoutBtn = document.getElementById("gmailLogoutBtn");
-  dom.gmailStatus = document.getElementById("gmailStatus");
-  dom.gmailSummary = document.getElementById("gmailSummary");
-  dom.gmailList = document.getElementById("gmailList");
-  dom.hotspotList = document.getElementById("hotspotList");
-  dom.hotspotDetail = document.getElementById("hotspotDetail");
-  dom.hotspotHint = document.getElementById("hotspotHint");
 }
 
 function bindEvents() {
@@ -460,7 +448,6 @@ function bindEvents() {
     renderFeed();
     renderCheckinMarkers();
     renderPlaceMarkers();
-    renderHotspotMarkers();
   });
 
   dom.clearDataBtn?.addEventListener("click", () => {
@@ -479,10 +466,6 @@ function bindEvents() {
 
   dom.checkinForm?.addEventListener("submit", handleCheckinSubmit);
   dom.feedList?.addEventListener("click", onFeedClick);
-  dom.gmailLoginBtn?.addEventListener("click", handleGmailLogin);
-  dom.gmailRefreshBtn?.addEventListener("click", () => refreshGmailData(true));
-  dom.gmailLogoutBtn?.addEventListener("click", handleGmailLogout);
-  dom.hotspotList?.addEventListener("click", onHotspotListClick);
 }
 
 function loadPreferences() {
@@ -534,6 +517,99 @@ async function loadCheckins() {
   } catch (error) {
     console.error("Unable to load checkins", error);
   }
+}
+
+// 產生範例照片（SVG 鴨子插圖，內嵌為 data URL）
+function makeExamplePhoto(label, bodyColor) {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="360">` +
+    `<rect width="480" height="360" fill="#cdeeda"/>` +
+    `<ellipse cx="210" cy="245" rx="120" ry="72" fill="${bodyColor}" stroke="#1f3b3a" stroke-width="4"/>` +
+    `<circle cx="318" cy="188" r="48" fill="${bodyColor}" stroke="#1f3b3a" stroke-width="4"/>` +
+    `<polygon points="360,182 420,170 360,208" fill="#f0a13a" stroke="#1f3b3a" stroke-width="3"/>` +
+    `<circle cx="334" cy="176" r="6" fill="#1f3b3a"/>` +
+    `<text x="240" y="330" font-family="sans-serif" font-size="30" text-anchor="middle" fill="#1f3b3a">${label}</text>` +
+    `</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+// 首次使用時，加入真實的 AI 辨識範例打卡，讓 App 打開就有示範內容
+function seedExampleCheckins() {
+  if (state.checkins.length > 0) {
+    return;
+  }
+
+  const lib = window.SPECIES_LIBRARY || [];
+  const byId = (id) => lib.find((s) => s.id === id);
+  const seedColors = {
+    mallard: "#2f7d5c",
+    black_faced_spoonbill: "#4a5d7a",
+    little_egret: "#e8e8e0"
+  };
+
+  const buildExample = (speciesId, notes, lat, lng, hoursAgo, confidence) => {
+    const s = byId(speciesId);
+    if (!s) {
+      return null;
+    }
+    return {
+      id: "seed-" + speciesId,
+      createdAt: new Date(Date.now() - hoursAgo * 3600 * 1000).toISOString(),
+      notes,
+      tags: [],
+      lat,
+      lng,
+      photos: [makeExamplePhoto(s.commonName.zh, seedColors[speciesId] || "#2f7d5c")],
+      aiResult: {
+        commonName: s.commonName,
+        scientificName: s.scientificName,
+        confidence,
+        conservationStatus: s.conservationStatus,
+        habitat: s.habitat,
+        threats: s.threats,
+        recommendedActions: s.recommendedActions,
+        traits: s.traits,
+        source: "demo"
+      }
+    };
+  };
+
+  const examples = [
+    buildExample(
+      "mallard",
+      "在魚塘邊看到一隻綠頭鴨雄鳥，頭部綠色光澤非常明顯，正在淺水區覓食。",
+      22.4833,
+      114.0333,
+      30,
+      0.93
+    ),
+    buildExample(
+      "black_faced_spoonbill",
+      "黑面琵鷺在淺水灘用匙狀喙左右掃水覓食，旁邊還有幾隻小白鷺。",
+      22.4719,
+      114.0308,
+      55,
+      0.91
+    ),
+    buildExample(
+      "little_egret",
+      "小白鷺在潮間帶靜立等待小魚經過，動作非常優雅。",
+      22.5068,
+      114.1095,
+      80,
+      0.88
+    )
+  ].filter(Boolean);
+
+  if (!examples.length) {
+    return;
+  }
+
+  state.checkins = examples;
+  state.latestResult = examples[0].aiResult;
+  persistCheckins();
+  renderFeed();
+  renderResultCard(state.latestResult);
 }
 
 function loadGmailCache() {
@@ -645,7 +721,6 @@ function applyI18n() {
   dom.langToggleBtn.textContent = state.language === "zh" ? "English" : "繁中";
   dom.privacyNotice.textContent = t("privacyNotice");
   dom.uploadHint.textContent = t("uploadHint");
-  dom.gmailPrivacyHint.textContent = t("gmailPrivacyHint");
 
   if (!dom.locationStatus.dataset.raw) {
     setStatus("mapReady");
@@ -653,16 +728,7 @@ function applyI18n() {
     setStatus("", dom.locationStatus.dataset.raw);
   }
 
-  if (!dom.gmailStatus.dataset.raw) {
-    setGmailStatus(state.gmailToken ? "gmailSignedIn" : "gmailIdle");
-  } else {
-    setGmailStatus("", dom.gmailStatus.dataset.raw);
-  }
-
   updateMapProviderBadge();
-  updateGmailButtons();
-  renderGmailSummary();
-  renderGmailList();
 }
 
 function t(key) {
