@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eco-app-v8';
+const CACHE_NAME = 'eco-app-v9';
 
 // 安裝 Service Worker 並快取必要檔案
 self.addEventListener('install', (e) => {
@@ -16,7 +16,8 @@ self.addEventListener('install', (e) => {
         './place_detail.html',
         './place_detail.css',
         './place_detail.js',
-        './data/places.json'
+        './data/places.json',
+        './data/species.js'
       ]);
     })
   );
